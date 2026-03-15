@@ -3,19 +3,9 @@
   50% { opacity: 0; }
 }
 
-.scanlines {
+.root {
   position: fixed;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 2px,
-    rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px
-  );
-  pointer-events: none;
-  z-index: 10;
-}
-
-.root {
-  min-height: 100vh;
   background: #000;
   display: flex;
   flex-direction: column;
@@ -23,101 +13,98 @@
   justify-content: center;
   font-family: 'Courier New', monospace;
   user-select: none;
-  padding: 16px;
-  gap: 20px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
 }
 
-/* ── Clock face ── */
+/* ── Clock fills everything ── */
 .clock {
-  background: #050000;
-  border: 3px solid #1a0808;
-  border-radius: 12px;
-  padding: 24px 32px 12px;
-  width: 90vw;
-  max-width: 500px;
-  cursor: pointer;
-  transition: border-color 0.3s, box-shadow 0.4s;
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.6);
-  -webkit-tap-highlight-color: transparent;
-}
-.clock:active {
-  transform: scale(0.98);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 2vw;
+  transition: background 0.3s;
 }
 .clock-low {
-  border-color: #331100;
-  box-shadow: inset 0 0 50px rgba(255,0,0,0.06), 0 0 30px rgba(255,0,0,0.04);
+  background: radial-gradient(ellipse at center, rgba(255,0,0,0.06) 0%, transparent 70%);
 }
 .clock-expired {
-  border-color: #ff1a1a;
-  box-shadow: inset 0 0 80px rgba(255,0,0,0.15), 0 0 60px rgba(255,0,0,0.1);
+  background: radial-gradient(ellipse at center, rgba(255,0,0,0.12) 0%, transparent 70%);
 }
 
 .led-svg {
-  width: 100%;
+  width: 90%;
+  max-width: 95vw;
+  max-height: 75vh;
   display: block;
 }
 
+/* ── Status — tiny at bottom ── */
 .status {
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: #331111;
   text-align: center;
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: #441111;
-  margin-top: 8px;
-  height: 16px;
+  padding: 4px 0;
 }
 .status-exp {
   color: #ff1a1a;
   animation: blink 0.5s step-end infinite;
 }
 
-/* ── Reset buttons ── */
+/* ── Reset buttons — bottom edge ── */
 .resets {
   display: flex;
   gap: 16px;
+  padding: 8px 0 12px;
+  cursor: default;
 }
 
 .reset-btn {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: #0a0000;
-  border: 2px solid #2a0808;
+  background: transparent;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.1s;
+  transition: transform 0.1s;
   -webkit-tap-highlight-color: transparent;
 }
 .reset-btn:active {
-  transform: scale(0.92);
-  border-color: #ff1a1a;
+  transform: scale(0.9);
 }
 
 .reset-num {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
-  color: #ff1a1a;
+  color: #551111;
   font-family: 'Courier New', monospace;
 }
 
-/* ── Install PWA button ── */
+/* ── Install ── */
 .install-btn {
-  padding: 8px 20px;
-  font-size: 10px;
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  padding: 6px 14px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   font-family: 'Courier New', monospace;
   background: none;
-  border: 1px solid #331111;
-  border-radius: 20px;
+  border: none;
   color: #661111;
   cursor: pointer;
-  transition: all 0.2s;
+  z-index: 20;
   -webkit-tap-highlight-color: transparent;
 }
 .install-btn:active {
   background: #ff1a1a;
   color: #000;
-  border-color: #ff1a1a;
 }
