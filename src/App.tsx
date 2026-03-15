@@ -40,7 +40,7 @@ function Digit({ val, x, y, sc }: { val:number; x:number; y:number; sc:number })
   const s = SEGS[val] || [0,0,0,0,0,0,0];
   const w=44*sc, h=76*sc, t=6*sc, g=2*sc, hw=w-2*g, vw=(h-t)/2-g;
   const on = "#ff1a1a", off = "#1a0000";
-  const glow = `drop-shadow(0 0 8px ${on}) drop-shadow(0 0 20px ${on}44)`;
+  const glow = `drop-shadow(0 0 12px ${on}) drop-shadow(0 0 30px ${on}55)`;
   const pts = [
     hP(g,0,hw,t), vP(w-t-g,g,t,vw), vP(w-t-g,(h-t)/2+g,t,vw),
     hP(g,h-t,hw,t), vP(g,(h-t)/2+g,t,vw), vP(g,g,t,vw), hP(g,(h-t)/2,hw,t),
@@ -58,41 +58,47 @@ function Digit({ val, x, y, sc }: { val:number; x:number; y:number; sc:number })
 function LED({ timeMs, expired }: { timeMs:number; expired:boolean }) {
   const sec = timeMs / 1000;
   const showDec = (sec < 5 && sec > 0) || expired;
-  const sc = 2.2;
-  const dw = 44*sc, h = 76*sc, gap = 14*sc, dotGap = 10*sc;
-  const vbW = 440, vbH = h + 24;
-  const cy = (vbH - h) / 2;
+
+  // Giant scale — fills viewport
+  const sc = 5.5;
+  const dw = 44*sc, h = 76*sc, gap = 18*sc, dotGap = 12*sc;
+  const vbH = h + 10;
 
   if (showDec) {
     const v = expired ? 0 : sec;
     const txt = v.toFixed(1);
     const w = parseInt(txt[0]), d = parseInt(txt[2]||"0");
-    const tw = dw + dotGap*2 + 6*sc + dw;
-    const sx = (vbW - tw) / 2;
+    const tw = dw + dotGap*2 + 8*sc + dw;
+    const vbW = tw + 20;
+    const sx = 10;
     return (
       <svg viewBox={`0 0 ${vbW} ${vbH}`} className="led-svg">
-        <Digit val={w} x={sx} y={cy} sc={sc} />
-        <circle cx={sx+dw+dotGap+3*sc} cy={cy+h*0.85} r={4*sc}
-          fill="#ff1a1a" style={{filter:"drop-shadow(0 0 6px #ff1a1a)"}} />
-        <Digit val={d} x={sx+dw+dotGap*2+6*sc} y={cy} sc={sc} />
+        <Digit val={w} x={sx} y={5} sc={sc} />
+        <circle cx={sx+dw+dotGap+4*sc} cy={5+h*0.85} r={5*sc}
+          fill="#ff1a1a" style={{filter:"drop-shadow(0 0 10px #ff1a1a)"}} />
+        <Digit val={d} x={sx+dw+dotGap*2+8*sc} y={5} sc={sc} />
       </svg>
     );
   }
 
   const d = Math.ceil(sec);
   const tens = Math.floor(d / 10), ones = d % 10;
+
   if (tens > 0) {
-    const tw = dw*2 + gap, sx = (vbW - tw) / 2;
+    const tw = dw*2 + gap;
+    const vbW = tw + 20;
     return (
       <svg viewBox={`0 0 ${vbW} ${vbH}`} className="led-svg">
-        <Digit val={tens} x={sx} y={cy} sc={sc} />
-        <Digit val={ones} x={sx+dw+gap} y={cy} sc={sc} />
+        <Digit val={tens} x={10} y={5} sc={sc} />
+        <Digit val={ones} x={10+dw+gap} y={5} sc={sc} />
       </svg>
     );
   }
+
+  const vbW = dw + 20;
   return (
     <svg viewBox={`0 0 ${vbW} ${vbH}`} className="led-svg">
-      <Digit val={ones} x={(vbW-dw)/2} y={cy} sc={sc} />
+      <Digit val={ones} x={10} y={5} sc={sc} />
     </svg>
   );
 }
@@ -107,42 +113,39 @@ export default function App() {
   const buzzed = useRef(false);
   const wakeLockRef = useRef<any>(null);
 
-  // PWA install prompt
+  // PWA install
   useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
-
   const handleInstall = async () => {
     if (!installPrompt) return;
     installPrompt.prompt();
-    const result = await installPrompt.userChoice;
-    if (result.outcome === "accepted") setInstallPrompt(null);
+    const r = await installPrompt.userChoice;
+    if (r.outcome === "accepted") setInstallPrompt(null);
   };
 
-  // Wake Lock — keep screen on
+  // Wake Lock
   useEffect(() => {
-    const requestWake = async () => {
-      try {
-        if ("wakeLock" in navigator) {
-          wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
-        }
-      } catch (_) {}
+    const req = async () => {
+      try { if ("wakeLock" in navigator) wakeLockRef.current = await (navigator as any).wakeLock.request("screen"); } catch (_) {}
     };
-    requestWake();
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") requestWake();
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
-      wakeLockRef.current?.release();
-    };
+    req();
+    const onVis = () => { if (document.visibilityState === "visible") req(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { document.removeEventListener("visibilitychange", onVis); wakeLockRef.current?.release(); };
   }, []);
+
+  // Fullscreen on first tap
+  const tryFullscreen = () => {
+    try {
+      const el = document.documentElement;
+      if (!document.fullscreenElement) {
+        el.requestFullscreen?.() || (el as any).webkitRequestFullscreen?.();
+      }
+    } catch (_) {}
+  };
 
   // Countdown
   useEffect(() => {
@@ -168,14 +171,11 @@ export default function App() {
     }
   }, [timeMs]);
 
-  // Toggle start/stop
+  // Toggle
   const toggle = useCallback(() => {
+    tryFullscreen();
     if (expired) {
-      // If expired, tap resets to 24 paused
-      setTimeMs(FULL);
-      setExpired(false);
-      buzzed.current = false;
-      setRunning(false);
+      setTimeMs(FULL); setExpired(false); buzzed.current = false; setRunning(false);
       return;
     }
     setRunning(r => !r);
@@ -184,10 +184,7 @@ export default function App() {
   // Reset
   const resetTo = useCallback((ms: number) => {
     if (ivRef.current) clearInterval(ivRef.current);
-    setTimeMs(ms);
-    setExpired(false);
-    buzzed.current = false;
-    setRunning(false);
+    setTimeMs(ms); setExpired(false); buzzed.current = false; setRunning(false);
   }, []);
 
   // Keyboard
@@ -205,23 +202,20 @@ export default function App() {
   const isLow = sec <= 5 && sec > 0;
 
   return (
-    <div className="root">
-      <div className="scanlines" />
+    <div className="root" onClick={toggle}>
 
-      {/* Main clock — tap to start/stop */}
-      <div
-        className={`clock ${expired ? "clock-expired" : isLow ? "clock-low" : ""}`}
-        onClick={toggle}
-      >
+      {/* Giant LED — fills the screen */}
+      <div className={`clock ${expired ? "clock-expired" : isLow ? "clock-low" : ""}`}>
         <LED timeMs={timeMs} expired={expired} />
-
-        <div className={`status ${expired ? "status-exp" : ""}`}>
-          {expired ? "VIOLACIÓN · TOCA PARA RESET" : running ? "▶ EN JUEGO" : "⏸ TOCA PARA INICIAR"}
-        </div>
       </div>
 
-      {/* Reset buttons */}
-      <div className="resets">
+      {/* Tiny status */}
+      <div className={`status ${expired ? "status-exp" : ""}`}>
+        {expired ? "VIOLACIÓN" : running ? "EN JUEGO" : "PAUSA"}
+      </div>
+
+      {/* Reset circles — bottom */}
+      <div className="resets" onClick={(e) => e.stopPropagation()}>
         <div className="reset-btn" onClick={() => resetTo(FULL)}>
           <span className="reset-num">24</span>
         </div>
@@ -230,10 +224,10 @@ export default function App() {
         </div>
       </div>
 
-      {/* Install PWA */}
+      {/* Install */}
       {installPrompt && (
-        <button className="install-btn" onClick={handleInstall}>
-          INSTALAR APP
+        <button className="install-btn" onClick={(e) => { e.stopPropagation(); handleInstall(); }}>
+          INSTALAR
         </button>
       )}
     </div>

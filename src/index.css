@@ -1,10 +1,112 @@
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-body {
+.root {
+  position: fixed;
+  inset: 0;
   background: #000;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  user-select: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+/* ── Clock fills everything ── */
+.clock {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 2vw;
+  transition: background 0.3s;
+}
+.clock-low {
+  background: radial-gradient(ellipse at center, rgba(255,0,0,0.06) 0%, transparent 70%);
+}
+.clock-expired {
+  background: radial-gradient(ellipse at center, rgba(255,0,0,0.12) 0%, transparent 70%);
+}
+
+.led-svg {
+  width: 90%;
+  max-width: 95vw;
+  max-height: 75vh;
+  display: block;
+}
+
+/* ── Status — tiny at bottom ── */
+.status {
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: #331111;
+  text-align: center;
+  padding: 4px 0;
+}
+.status-exp {
+  color: #ff1a1a;
+  animation: blink 0.5s step-end infinite;
+}
+
+/* ── Reset buttons — bottom edge ── */
+.resets {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0 12px;
+  cursor: default;
+}
+
+.reset-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0a0000;
+  border: 2px solid #2a0808;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.reset-btn:active {
+  transform: scale(0.9);
+  border-color: #ff1a1a;
+}
+
+.reset-num {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff1a1a;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── Install ── */
+.install-btn {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  padding: 6px 14px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  font-family: 'Courier New', monospace;
+  background: none;
+  border: 1px solid #331111;
+  border-radius: 16px;
+  color: #661111;
+  cursor: pointer;
+  z-index: 20;
+  -webkit-tap-highlight-color: transparent;
+}
+.install-btn:active {
+  background: #ff1a1a;
+  color: #000;
 }
