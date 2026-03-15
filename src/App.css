@@ -1,0 +1,123 @@
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+.root {
+  min-height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  user-select: none;
+  padding: 16px;
+  gap: 20px;
+}
+
+/* ── Clock face ── */
+.clock {
+  background: #050000;
+  border: 3px solid #1a0808;
+  border-radius: 12px;
+  padding: 24px 32px 12px;
+  width: 90vw;
+  max-width: 500px;
+  cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.4s;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.6);
+  -webkit-tap-highlight-color: transparent;
+}
+.clock:active {
+  transform: scale(0.98);
+}
+.clock-low {
+  border-color: #331100;
+  box-shadow: inset 0 0 50px rgba(255,0,0,0.06), 0 0 30px rgba(255,0,0,0.04);
+}
+.clock-expired {
+  border-color: #ff1a1a;
+  box-shadow: inset 0 0 80px rgba(255,0,0,0.15), 0 0 60px rgba(255,0,0,0.1);
+}
+
+.led-svg {
+  width: 100%;
+  display: block;
+}
+
+.status {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #441111;
+  margin-top: 8px;
+  height: 16px;
+}
+.status-exp {
+  color: #ff1a1a;
+  animation: blink 0.5s step-end infinite;
+}
+
+/* ── Reset buttons ── */
+.resets {
+  display: flex;
+  gap: 16px;
+}
+
+.reset-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #0a0000;
+  border: 2px solid #2a0808;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.reset-btn:active {
+  transform: scale(0.92);
+  border-color: #ff1a1a;
+}
+
+.reset-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff1a1a;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── Install PWA button ── */
+.install-btn {
+  padding: 8px 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-family: 'Courier New', monospace;
+  background: none;
+  border: 1px solid #331111;
+  border-radius: 20px;
+  color: #661111;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.install-btn:active {
+  background: #ff1a1a;
+  color: #000;
+  border-color: #ff1a1a;
+}
