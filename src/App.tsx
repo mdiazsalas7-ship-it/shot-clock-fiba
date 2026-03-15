@@ -6,16 +6,68 @@ const SHORT = 14000;
 
 function playBuzzer() {
   try {
-    const c = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const o1 = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
-    o1.type = "square"; o2.type = "square";
-    o1.frequency.setValueAtTime(520, c.currentTime);
-    o2.frequency.setValueAtTime(380, c.currentTime);
-    g.gain.setValueAtTime(0.25, c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, c.currentTime + 1.4);
-    o1.connect(g); o2.connect(g); g.connect(c.destination);
-    o1.start(); o2.start();
-    o1.stop(c.currentTime + 1.4); o2.stop(c.currentTime + 1.4);
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const t = ctx.currentTime;
+
+    // Master gain
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0, t);
+    master.gain.linearRampToValueAtTime(0.6, t + 0.05);  // quick attack
+    master.gain.setValueAtTime(0.6, t + 1.5);             // sustain
+    master.gain.linearRampToValueAtTime(0, t + 1.8);      // cut off
+    master.connect(ctx.destination);
+
+    // Distortion for harsh buzzer texture
+    const distortion = ctx.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) {
+      const x = (i * 2) / 256 - 1;
+      curve[i] = (Math.PI + 20) * x / (Math.PI + 20 * Math.abs(x));
+    }
+    distortion.curve = curve;
+    distortion.connect(master);
+
+    // Low horn fundamental — 220 Hz
+    const horn1 = ctx.createOscillator();
+    horn1.type = "sawtooth";
+    horn1.frequency.setValueAtTime(220, t);
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0.5, t);
+    horn1.connect(g1);
+    g1.connect(distortion);
+
+    // Second harmonic — 440 Hz
+    const horn2 = ctx.createOscillator();
+    horn2.type = "sawtooth";
+    horn2.frequency.setValueAtTime(440, t);
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.25, t);
+    horn2.connect(g2);
+    g2.connect(distortion);
+
+    // Third layer — slight detune for thickness
+    const horn3 = ctx.createOscillator();
+    horn3.type = "square";
+    horn3.frequency.setValueAtTime(223, t);  // slightly detuned
+    const g3 = ctx.createGain();
+    g3.gain.setValueAtTime(0.2, t);
+    horn3.connect(g3);
+    g3.connect(distortion);
+
+    // Sub bass rumble
+    const sub = ctx.createOscillator();
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(110, t);
+    const gSub = ctx.createGain();
+    gSub.gain.setValueAtTime(0.3, t);
+    sub.connect(gSub);
+    gSub.connect(master);
+
+    // Start and stop all
+    [horn1, horn2, horn3, sub].forEach(o => {
+      o.start(t);
+      o.stop(t + 1.9);
+    });
   } catch (_) {}
 }
 
