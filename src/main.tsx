@@ -9,16 +9,23 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>
 );
 
-// ── Register Service Worker for PWA / Offline ──
+// ── Service Worker: always check for updates ──
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/sw.js")
       .then((reg) => {
-        console.log("SW registered:", reg.scope);
+        // Force check for new SW every time the app opens
+        reg.update();
+        // Auto-reload when new SW activates
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
       })
-      .catch((err) => {
-        console.log("SW registration failed:", err);
-      });
+      .catch(() => {});
   });
 }

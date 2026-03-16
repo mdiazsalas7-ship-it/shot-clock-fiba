@@ -1,72 +1,42 @@
-const CACHE_NAME = "shotclock-v1";
+// Network-first SW — always checks for updates, uses cache only when offline
+const CACHE_NAME = "shotclock-v3";
 
-// Install: cache the app shell
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        "/",
-        "/index.html",
-        "/manifest.json",
-        "/icon-192.png",
-        "/icon-512.png",
-        "/apple-touch-icon.png",
-      ]);
-    })
-  );
-  self.skipWaiting();
+self.addEventListener("install", () => {
+  self.skipWaiting(); // activate immediately, don't wait
 });
 
-// Activate: clean old caches
 self.addEventListener("activate", (event) => {
+  // Delete ALL old caches
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
+      Promise.all(keys.map((key) => caches.delete(key)))
+    ).then(() => self.clients.claim()) // take control immediately
   );
-  self.clients.claim();
 });
 
-// Fetch: cache-first, fallback to network, cache new responses
 self.addEventListener("fetch", (event) => {
-  // Only handle GET requests
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(event.request)
-        .then((response) => {
-          // Don't cache non-ok responses or chrome-extension requests
-          if (
-            !response ||
-            response.status !== 200 ||
-            response.type === "opaque" ||
-            event.request.url.startsWith("chrome-extension")
-          ) {
-            return response;
-          }
-
-          // Clone and cache the response
+    // ALWAYS try network first
+    fetch(event.request)
+      .then((response) => {
+        // Got fresh response — cache it and return
+        if (response.ok) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, clone);
-          });
-
-          return response;
-        })
-        .catch(() => {
-          // If offline and not in cache, return the cached index for navigation
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => {
+        // Network failed (offline) — serve from cache
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
           if (event.request.mode === "navigate") {
             return caches.match("/index.html");
           }
           return new Response("Offline", { status: 503 });
         });
-    })
+      })
   );
 });
